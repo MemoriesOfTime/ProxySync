@@ -1,0 +1,23 @@
+# Remote WDPE proxy addresses (IP:port)
+remote-proxies:
+  - "127.0.0.1:19132"
+  - "127.0.0.1:19131"
+  - "127.0.0.1:19130"
+  - "127.0.0.1:19129"
+  - "127.0.0.1:19128"
+
+# Query interval (seconds)
+query-interval: 30
+
+# Aggregate online player count (true=sum of all proxies, false=local only)
+aggregate-player-count: false
+
+# Aggregate max player count (true=sum of all proxies, false=local config only)
+aggregate-max-players: false
+
+# Transfer players to other online proxies on shutdown
+transfer-on-shutdown: true
+
+# Public IP for client transfer (replaces 127.0.0.1 in transfer packets)
+# Leave empty to use the address as-is
+public-address: ""

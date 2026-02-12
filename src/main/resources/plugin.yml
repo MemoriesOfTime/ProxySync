@@ -1,0 +1,4 @@
+name: "ProxySync"
+author: "LT_Name"
+version: "${version}"
+main: "cn.lanink.proxysync.ProxySync"

@@ -21,3 +21,15 @@ transfer-on-shutdown: true
 # Public IP for client transfer (replaces 127.0.0.1 in transfer packets)
 # Leave empty to use the address as-is
 public-address: ""
+
+# Maintenance mode kick message (shown when no remote proxy is available)
+maintenance-message: "Server is under maintenance, please try again later."
+
+# Delay before transferring player in maintenance mode (ticks, 20 ticks = 1 second)
+maintenance-transfer-delay: 100
+
+# Title text shown to player before transfer
+maintenance-title: "§cServer Maintenance"
+
+# Subtitle text shown to player before transfer
+maintenance-subtitle: "§eTransferring to another server..."

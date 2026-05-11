@@ -8,6 +8,7 @@ A WaterdogPE plugin that synchronizes player counts and transfers players across
 
 - **Aggregated Player Count** - Combines player counts from multiple WaterdogPE proxies and displays the total in MOTD/Query responses
 - **Player Transfer on Shutdown** - Automatically transfers connected players to other online proxies when the current proxy shuts down, using round-robin distribution
+- **Maintenance Mode** - Redirects new players to other online proxies while allowing current players to finish; optionally auto-shuts down the proxy when empty
 - **Remote Proxy Monitoring** - Periodically queries remote proxies via the Minecraft Bedrock UDP MOTD protocol to track their status and player counts
 - **Public Address Translation** - Supports replacing localhost addresses with a public IP for player transfer packets in NAT environments
 
@@ -57,6 +58,18 @@ transfer-on-shutdown: true
 # Public IP for client transfer (replaces 127.0.0.1 in transfer packets)
 # Leave empty to use the address as-is
 public-address: ""
+
+# Maintenance mode kick message (shown when no remote proxy is available)
+maintenance-message: "Server is under maintenance, please try again later."
+
+# Delay before transferring player in maintenance mode (ticks, 20 ticks = 1 second)
+maintenance-transfer-delay: 100
+
+# Title text shown to player before transfer
+maintenance-title: "§cServer Maintenance"
+
+# Subtitle text shown to player before transfer
+maintenance-subtitle: "§eTransferring to another server..."
 ```
 
 | Option | Type | Default | Description |
@@ -67,6 +80,19 @@ public-address: ""
 | `aggregate-max-players` | Boolean | false | Add remote max player slots to MOTD/Query responses |
 | `transfer-on-shutdown` | Boolean | true | Transfer players to online remote proxies on shutdown |
 | `public-address` | String | "" | Public IP to replace localhost in transfer packets |
+| `maintenance-message` | String | "Server is under maintenance, please try again later." | Message shown when a player is rejected during maintenance (no remote proxy available) |
+| `maintenance-transfer-delay` | Integer | 100 | Delay in ticks before transferring a player in maintenance mode (20 ticks = 1 second) |
+| `maintenance-title` | String | "§cServer Maintenance" | Title text shown to the player before transfer |
+| `maintenance-subtitle` | String | "§eTransferring to another server..." | Subtitle text shown to the player before transfer |
+
+## Commands
+
+| Command | Permission | Description |
+|---|---|---|
+| `/ps mt on` | `proxysync.maintenance` | Enable maintenance mode (new players are transferred to other proxies) |
+| `/ps mt on shutdown` | `proxysync.maintenance` | Enable maintenance mode and auto-shutdown when no players remain |
+| `/ps mt off` | `proxysync.maintenance` | Disable maintenance mode |
+| `/ps mt status` | `proxysync.maintenance` | Show current maintenance and shutdown status |
 
 ## How It Works
 
@@ -74,3 +100,5 @@ public-address: ""
 2. A scheduled task periodically sends UDP MOTD query packets to each remote proxy and caches the results (online count + max count)
 3. When `aggregate-player-count` or `aggregate-max-players` is enabled, the plugin intercepts `ProxyPingEvent` and `ProxyQueryEvent` to add remote counts to the response
 4. On proxy shutdown (if `transfer-on-shutdown` is enabled), connected players are distributed to online remote proxies via `TransferPacket` using round-robin
+5. Maintenance mode shows a Title notification to new players, then redirects them to other online proxies via `TransferPacket` after a configurable delay; if no remote proxy is available, the login is rejected with a configurable message
+6. When `shutdown` is specified with maintenance mode, the proxy automatically shuts down once all players have left

@@ -1,5 +1,8 @@
 package cn.lanink.proxysync;
 
+import dev.waterdog.waterdogpe.event.defaults.InitialServerConnectedEvent;
+import dev.waterdog.waterdogpe.event.defaults.PlayerDisconnectedEvent;
+import dev.waterdog.waterdogpe.event.defaults.PlayerLoginEvent;
 import dev.waterdog.waterdogpe.event.defaults.ProxyPingEvent;
 import dev.waterdog.waterdogpe.event.defaults.ProxyQueryEvent;
 import dev.waterdog.waterdogpe.player.ProxiedPlayer;
@@ -18,6 +21,7 @@ import java.util.List;
 public class ProxySync extends Plugin {
 
     private RemoteProxyCounter remoteProxyCounter;
+    private MaintenanceManager maintenanceManager;
 
     @Override
     public void onEnable() {
@@ -38,6 +42,12 @@ public class ProxySync extends Plugin {
 
         getProxy().getEventManager().subscribe(ProxyPingEvent.class, event -> handleEvent(event, aggregateCount, aggregateMax));
         getProxy().getEventManager().subscribe(ProxyQueryEvent.class, event -> handleEvent(event, aggregateCount, aggregateMax));
+
+        maintenanceManager = new MaintenanceManager(this);
+        getProxy().getEventManager().subscribe(PlayerLoginEvent.class, maintenanceManager::handlePlayerLogin);
+        getProxy().getEventManager().subscribe(InitialServerConnectedEvent.class, maintenanceManager::handleInitialServerConnected);
+        getProxy().getEventManager().subscribe(PlayerDisconnectedEvent.class, event -> maintenanceManager.handlePlayerDisconnected());
+        getProxy().getCommandMap().registerCommand(new MaintenanceCommand(maintenanceManager));
 
         getLogger().info("ProxySync enabled, monitoring {} remote proxies", addresses.size());
     }
@@ -127,7 +137,15 @@ public class ProxySync extends Plugin {
         return addresses;
     }
 
-    private static boolean isLocalAddress(String host) {
+    public RemoteProxyCounter getRemoteProxyCounter() {
+        return remoteProxyCounter;
+    }
+
+    public MaintenanceManager getMaintenanceManager() {
+        return maintenanceManager;
+    }
+
+    static boolean isLocalAddress(String host) {
         return "127.0.0.1".equals(host) || "localhost".equals(host) || "::1".equals(host);
     }
 
